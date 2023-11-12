@@ -26,28 +26,25 @@ exports.list = async (req, res) => {
     }
 }
 
+
 exports.listby = async (req, res) => {
     try {
-        console.log(req.body)
-        const { limit, sort, order, query } = req.body.filters
-
+        console.log(req.body);
+        const { limit, sort, order, query } = req.body.filters;
 
         let producted;
 
-        if (query === "" || !query) {
-            // หาก query เป็นข้อความว่าง
+        if (!query) {
             producted = await Product.find()
                 .limit(limit)
                 .sort([[sort, order]])
                 .populate("category")
                 .exec();
         } else {
-            // หาก query มีค่า
-            producted = await Product.find({ $text: { $search: `*${query}*` } })
-                .limit(limit)
-                .sort([[sort, order]])
-                .populate("category")
-                .exec();
+            let textSearch = await Product.find({ $text: { $search: `*${query}*` } }).limit(limit).sort([[sort, order]]).populate("category").exec();
+            let regexSearch = await Product.find({ "category.name": { $regex: `.*${query}.*`, $options: 'i' } }).limit(limit).sort([[sort, order]]).populate("category").exec();
+
+            producted = textSearch.concat(regexSearch);
         }
 
         res.send(producted);
@@ -55,7 +52,40 @@ exports.listby = async (req, res) => {
         console.log(err);
         res.status(500).send('Server Error');
     }
-}
+};
+
+
+
+// exports.listby = async (req, res) => {
+//     try {
+//         console.log(req.body)
+//         const { limit, sort, order, query } = req.body.filters
+
+
+//         let producted;
+
+//         if (query === "" || !query) {
+//             // หาก query เป็นข้อความว่าง
+//             producted = await Product.find()
+//                 .limit(limit)
+//                 .sort([[sort, order]])
+//                 .populate("category")
+//                 .exec();
+//         } else {
+//             // หาก query มีค่า
+//             producted = await Product.find({ $text: { $search: `*${query}*` } })
+//                 .limit(limit)
+//                 .sort([[sort, order]])
+//                 .populate("category")
+//                 .exec();
+//         }
+
+//         res.send(producted);
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).send('Server Error');
+//     }
+// }
 
 
 exports.listbyRecommend = async (req, res) => {

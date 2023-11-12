@@ -26,34 +26,26 @@ exports.list = async (req, res) => {
     }
 }
 
-
-
-
-exports.listbyToptrue = async (req, res) => {
+exports.listby = async (req, res) => {
     try {
-        // code
-        const homepaged = await Homepage.find({ top: true })
+        console.log(req.body)
+        const { limit, sort, order } = req.body
+
+       const homepaged = await Homepage.find()
+            .limit(limit)
+            .sort([[sort, order]])
             .exec();
-        res.send(homepaged)
+
+
+        res.send(homepaged);
     } catch (err) {
-        // error
-        console.log(err)
-        res.status(500).send('Server Error')
+        console.log(err);
+        res.status(500).send('Server Error');
     }
 }
 
-exports.listbyTopfalse = async (req, res) => {
-    try {
-        // code
-        const homepaged = await Homepage.find({ top: false })
-            .exec();
-        res.send(homepaged)
-    } catch (err) {
-        // error
-        console.log(err)
-        res.status(500).send('Server Error')
-    }
-}
+
+
 
 exports.create = async (req, res) => {
     try {
@@ -124,11 +116,12 @@ exports.remove = async (req, res) => {
     }
 }
 
-exports.changeTop = async (req, res) => {
+
+exports.changeView = async (req, res) => {
     try {
         console.log(req.body)
-        const toped = await Homepage.findOneAndUpdate({ _id: req.body.id }, { top: req.body.top })
-        res.send(toped)
+        const viewed = await Homepage.findOneAndUpdate({ _id: req.body.id }, { countView: req.body.countView })
+        res.send(viewed)
 
     } catch (error) {
         console.log(error)

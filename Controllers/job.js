@@ -8,6 +8,23 @@ exports.list = async (req, res) => {
         res.status(500).send("Server Error!!");
     }
 };
+exports.listby = async (req, res) => {
+    try {
+        console.log(req.body)
+        const { limit, sort, order } = req.body
+
+       const jobed = await Job.find()
+            .limit(limit)
+            .sort([[sort, order]])
+            .exec();
+
+
+        res.send(jobed);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error');
+    }
+}
 exports.create = async (req, res) => {
     try {
         const jobed = await Job.create(req.body);

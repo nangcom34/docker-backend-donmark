@@ -16,8 +16,4 @@ router.put('/imageSlide/:id', upload, update)
 router.delete('/imageSlide/:id', remove)
 
 
-
-
-
-
 module.exports = router

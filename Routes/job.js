@@ -1,5 +1,5 @@
 const express = require('express')
-const { list, read, create, update, remove, } = require('../Controllers/job')
+const { list, read, create, update, remove,listby } = require('../Controllers/job')
 
 const router = express.Router()
 
@@ -9,7 +9,7 @@ const router = express.Router()
 
 //http://localhost:5000/api/product
 router.get('/job', list)
-
+router.post('/jobby', listby)
 
 
 router.get('/job/:id', read)

@@ -26,6 +26,23 @@ exports.list = async (req, res) => {
     }
 }
 
+exports.listby = async (req, res) => {
+    try {
+        console.log(req.body)
+        const { limit, sort, order } = req.body
+
+       const ImageSlided = await ImageSlide.find()
+            .limit(limit)
+            .sort([[sort, order]])
+            .exec();
+
+
+        res.send(ImageSlided);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error');
+    }
+}
 
 exports.create = async (req, res) => {
     try {
