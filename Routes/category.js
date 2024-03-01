@@ -1,5 +1,5 @@
 const express = require('express')
-const { list, read, create, update, remove, } = require('../Controllers/category')
+const { list, read, create, update, remove,listby } = require('../Controllers/category')
 
 const router = express.Router()
 
@@ -9,6 +9,7 @@ const router = express.Router()
 
 //http://localhost:5000/api/product
 router.get('/category', list)
+router.post('/categoryby', listby)
 
 
 

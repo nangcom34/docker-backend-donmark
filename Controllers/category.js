@@ -11,28 +11,14 @@ exports.list = async (req, res) => {
 exports.listby = async (req, res) => {
     try {
         console.log(req.body)
-        const { limit, sort, order, query } = req.body.filters
+        const { limit, sort, order } = req.body.filtersCategory
+       const category = await Category.find()
+            .limit(limit)
+            .sort([[sort, order]])
+            .exec();
 
 
-        let producted;
-
-        if (query === "" || !query) {
-            // หาก query เป็นข้อความว่าง
-            producted = await Product.find()
-                .limit(limit)
-                .sort([[sort, order]])
-                .populate("category")
-                .exec();
-        } else {
-            // หาก query มีค่า
-            producted = await Product.find({ $text: { $search: `*${query}*` } })
-                .limit(limit)
-                .sort([[sort, order]])
-                .populate("category")
-                .exec();
-        }
-
-        res.send(producted);
+        res.send(category);
     } catch (err) {
         console.log(err);
         res.status(500).send('Server Error');
