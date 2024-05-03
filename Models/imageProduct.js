@@ -5,6 +5,10 @@ const imageProductSchema = mongoose.Schema({
     sale: {
         type: Boolean,
         default: false,
+    },
+    urlname: {
+        type: String,
+        default: "https://donmarkthai.com",
     }
 
 }, { timestamps: true })

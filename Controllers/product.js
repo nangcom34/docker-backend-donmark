@@ -14,10 +14,24 @@ exports.read = async (req, res) => {
     }
 }
 
+exports.getOne = async (req, res) => {
+    try {
+        // code
+        const { id } = req.body
+        console.log("id-->",id)
+        const producted = await Product.findOne({ _id: id }).populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name").exec();
+        res.send(producted)
+    } catch (err) {
+        // error
+        console.log(err)
+        res.status(500).send('Server Error')
+    }
+}
+
 exports.list = async (req, res) => {
     try {
         // code
-        const producted = await Product.find().populate("category").exec();
+        const producted = await Product.find().populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name").exec();
         res.send(producted)
     } catch (err) {
         // error
@@ -38,13 +52,15 @@ exports.listby = async (req, res) => {
             producted = await Product.find()
                 .limit(limit)
                 .sort([[sort, order]])
-                .populate("category")
+                .populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name")
                 .exec();
         } else {
-            let textSearch = await Product.find({ $text: { $search: `*${query}*` } }).limit(limit).sort([[sort, order]]).populate("category").exec();
-            let regexSearch = await Product.find({ "category.name": { $regex: `.*${query}.*`, $options: 'i' } }).limit(limit).sort([[sort, order]]).populate("category").exec();
+            producted = await Product.find({ $text: { $search: `*${query}*` } })
+                .limit(limit)
+                .sort([[sort, order]])
+                .populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name")
+                .exec();
 
-            producted = textSearch.concat(regexSearch);
         }
 
         res.send(producted);
@@ -54,38 +70,47 @@ exports.listby = async (req, res) => {
     }
 };
 
+exports.listByCat = async (req, res) => {
+    try {
+        console.log(req.body);
+        const { limit, sort, order, category, subCategory, subSubCategory } = await req.body.filters;
+        // สร้าง query สำหรับค้นหาสินค้าโดยใช้เงื่อนไขสำหรับหมวดหมู่และซับหมวดหมู่เท่านั้น
+        const query = {};
 
+        // ตรวจสอบและเพิ่มเงื่อนไขสำหรับการค้นหาจากหมวดหมู่และซับหมวดหมู่
+        if ((category && category.length > 0) || (subCategory && subCategory.length > 0) || (subSubCategory && subSubCategory.length > 0)) {
+            const orConditions = [];
 
-// exports.listby = async (req, res) => {
-//     try {
-//         console.log(req.body)
-//         const { limit, sort, order, query } = req.body.filters
+            if (category && category.length > 0) {
+                orConditions.push({ category: { $in: category } });
+            }
 
+            if (subCategory && subCategory.length > 0) {
+                orConditions.push({ subCategory: { $in: subCategory } });
+            }
 
-//         let producted;
+            if (subSubCategory && subSubCategory.length > 0) {
+                orConditions.push({ subSubCategory: { $in: subSubCategory } });
+            }
 
-//         if (query === "" || !query) {
-//             // หาก query เป็นข้อความว่าง
-//             producted = await Product.find()
-//                 .limit(limit)
-//                 .sort([[sort, order]])
-//                 .populate("category")
-//                 .exec();
-//         } else {
-//             // หาก query มีค่า
-//             producted = await Product.find({ $text: { $search: `*${query}*` } })
-//                 .limit(limit)
-//                 .sort([[sort, order]])
-//                 .populate("category")
-//                 .exec();
-//         }
+            query.$or = orConditions;
+        }
 
-//         res.send(producted);
-//     } catch (err) {
-//         console.log(err);
-//         res.status(500).send('Server Error');
-//     }
-// }
+        console.log("query", query)
+
+        // ทำการค้นหาสินค้าโดยใช้ query และส่งกลับผลลัพธ์
+        const products = await Product.find(query)
+            .limit(limit)
+            .sort([[sort, order]])
+            .populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name")
+            .exec();;
+
+        res.status(200).json(products);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error');
+    }
+};
 
 
 exports.listbyRecommend = async (req, res) => {
@@ -94,7 +119,7 @@ exports.listbyRecommend = async (req, res) => {
         const { limit, sort, order } = req.body
 
         const producted = await Product.find({ recommend: true })
-            .populate("category")
+            .populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name")
             .limit(limit)
             .sort([[sort, order]])
             .exec();
@@ -106,16 +131,62 @@ exports.listbyRecommend = async (req, res) => {
     }
 }
 
+exports.listByRecommendCat = async (req, res) => {
+    try {
+        console.log(req.body);
+        const { limit, sort, order, category, subCategory, subSubCategory } = await req.body.filters;
+        // สร้าง query สำหรับค้นหาสินค้าโดยใช้เงื่อนไขสำหรับหมวดหมู่และซับหมวดหมู่เท่านั้น
+        const query = { recommend: true }; // เพิ่มเงื่อนไข recommend เป็น true
+
+        // ตรวจสอบและเพิ่มเงื่อนไขสำหรับการค้นหาจากหมวดหมู่และซับหมวดหมู่
+        if ((category && category.length > 0) || (subCategory && subCategory.length > 0) || (subSubCategory && subSubCategory.length > 0)) {
+            const orConditions = [];
+
+            if (category && category.length > 0) {
+                orConditions.push({ category: { $in: category } });
+            }
+
+            if (subCategory && subCategory.length > 0) {
+                orConditions.push({ subCategory: { $in: subCategory } });
+            }
+
+            if (subSubCategory && subSubCategory.length > 0) {
+                orConditions.push({ subSubCategory: { $in: subSubCategory } });
+            }
+
+            if (orConditions.length > 0) {
+                query.$or = orConditions;
+            }
+        }
+
+        console.log("query", query)
+
+        // ทำการค้นหาสินค้าโดยใช้ query และส่งกลับผลลัพธ์
+        const products = await Product.find(query)
+            .limit(limit)
+            .sort([[sort, order]])
+            .populate("category", "_id name")
+            .populate("subCategory", "_id name")
+            .populate("subSubCategory", "_id name")
+            .exec();
+
+        res.status(200).json(products);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error');
+    }
+};
+
 exports.create = async (req, res) => {
     try {
         // code
-        console.log(req.body)
-        console.log(req.file)
+        console.log("req.body", req.body.data)
+        console.log("req.files", req.files)
         var data = req.body
-        if (req.file) {
-            data.file = req.file.filename
+        if (req.files) {
+            data.files = req.files.map(file => file.filename)
         }
-        console.log(data)
+        console.log("data", data.files)
         const producted = await Product(data).save()
         res.send(producted)
     } catch (err) {
@@ -126,47 +197,91 @@ exports.create = async (req, res) => {
 }
 exports.update = async (req, res) => {
     try {
-        // code
-        const id = req.params.id
-        var newData = req.body
-        console.log(newData)
-        console.log(req.file)
-        if (typeof req.file !== 'undefined') {
-            newData.file = req.file.filename
-            await fs.unlink('./uploads/' + newData.fileOld, (err) => {
-                if (err) {
-                    console.log(err)
-                } else {
-                    console.log('Edit success')
-                }
-            })
-        }
-        const updated = await Product
-            .findOneAndUpdate({ _id: id }, newData, { new: true })
-            .exec()
-        res.send(updated)
+        const id = req.params.id;
+        let newData = req.body;
+        console.log("newData-->", newData);
+        console.log("req.files-->", req.files);
 
+        //เช็คและแปลง string เป็น array
+        if (typeof newData.files === 'string') {
+            newData.files = [newData.files]
+        }
+        if (typeof newData.fileOld === 'string') {
+            newData.fileOld = [newData.fileOld]
+        }
+
+
+        if (req.files && req.files.length > 0) {
+            const fileNames = req.files.map(file => file.filename);
+            newData.files = fileNames;
+            // หากมีการอัพโหลดไฟล์ใหม่ ลบไฟล์เก่าออกจาก uploads directory
+            if (newData.fileOld && newData.fileOld.length > 0) {
+                await Promise.all(newData.fileOld.map(async oldFileName => {
+                    try {
+                        await fs.unlink('./uploads/' + oldFileName, (err) => {
+                            if (err) {
+                                console.error('Error deleting file:', oldFileName, err);
+                            } else {
+                                console.log('Deleted file:', oldFileName, 'success');
+                            }
+                        });
+                    } catch (err) {
+                        console.error('Error deleting file:', oldFileName, err);
+                    }
+                }));
+            }
+        }
+
+        console.log("newData.files", newData.files);
+        // ลบ property fileOld ออกเนื่องจากไม่ได้ใช้อีกต่อไป
+        delete newData.fileOld;
+
+        // ตรวจสอบและลบถ้าเป็น ""
+        if (newData.subSubCategory === "" || newData.subSubCategory === undefined || newData.subSubCategory === "undefined") {
+            newData.subSubCategory = undefined; // กำหนดให้เป็น undefined เพื่อใช้ในการลบ
+        }
+        // สร้าง object สำหรับการอัปเดต
+        let updateObj = newData;
+        if (newData.subSubCategory === undefined) {
+            updateObj = { ...newData, $unset: { subSubCategory: 1 } };
+        }
+
+        // อัปเดตข้อมูลใหม่ลงในฐานข้อมูล
+        const updated = await Product.findOneAndUpdate({ _id: id }, updateObj, { new: true });
+
+        res.send(updated);
     } catch (err) {
-        // error
-        console.log(err)
-        res.status(500).send('Server Error')
+        console.error(err);
+        res.status(500).send('Server Error');
     }
-}
+};
 exports.remove = async (req, res) => {
     try {
         // code
         const id = req.params.id
-        const removed = await Product.findOneAndDelete({ _id: id }).exec()
-        if (removed?.file) {
-            await fs.unlink('./uploads/' + removed.file, (err) => {
-                if (err) {
-                    console.log(err)
-                } else {
-                    console.log('Remove success')
-                }
-            })
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).send('Product not found');
         }
 
+        if (product.files && product.files.length > 0) {
+            await Promise.all(product.files.map(async fileName => {
+                try {
+                    await fs.unlink('./uploads/' + fileName, (err) => {
+                        if (err) {
+                            console.error('Error deleting file:', fileName, err);
+                        } else {
+                            console.log('Deleted file:', fileName, 'success');
+                        }
+                    });
+                } catch (err) {
+                    console.error('Error deleting file:', fileName, err);
+                }
+            }));
+        }
+        // ลบข้อมูลสินค้าออกจากฐานข้อมูล
+        const removed = await Product.findOneAndDelete({ _id: id }).exec()
         res.send(removed)
     } catch (err) {
         // error

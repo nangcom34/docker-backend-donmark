@@ -1,8 +1,7 @@
 const express = require('express')
 const { list, read, create, update, remove, listby } = require('../Controllers/catalog')
-const { upCatalog } = require('../Middleware/upCatalog')
+const { upCatalog } = require('../Middleware/upload')
 const router = express.Router()
-
 
 
 

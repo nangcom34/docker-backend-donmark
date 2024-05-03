@@ -7,10 +7,28 @@ const productSchema = mongoose.Schema({
         text: true,
     },
     description: String,
-    file: String,
+    brand: String,
+    type: String,
+    material: String,
+    model: String,
+    wide: String,
+    long: String,
+    high: String,
+    weight: String,
+    barcode: String,
+    productCode: String,
+    files: Array,
     category: {
         type: ObjectId,
         ref: "category"
+    },
+    subCategory: {
+        type: ObjectId,
+        ref: "subCategory"
+    },
+    subSubCategory: {
+        type: ObjectId,
+        ref: "subSubCategory"
     },
     recommend: {
         type: Boolean,
