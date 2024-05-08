@@ -18,7 +18,7 @@ exports.getOne = async (req, res) => {
     try {
         // code
         const { id } = req.body
-        console.log("id-->",id)
+        console.log("id-->", id)
         const producted = await Product.findOne({ _id: id }).populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name").exec();
         res.send(producted)
     } catch (err) {
@@ -55,7 +55,8 @@ exports.listby = async (req, res) => {
                 .populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name")
                 .exec();
         } else {
-            producted = await Product.find({ $text: { $search: `*${query}*` } })
+            const regexQuery = new RegExp(query.split(' ').join('.*'), 'i');
+            producted = await Product.find({ name: regexQuery })
                 .limit(limit)
                 .sort([[sort, order]])
                 .populate("category", "_id name").populate("subCategory", "_id name").populate("subSubCategory", "_id name")
