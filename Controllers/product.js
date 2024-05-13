@@ -47,7 +47,7 @@ exports.listby = async (req, res) => {
         const { limit, sort, order, query } = req.body.filters;
 
         let producted;
-
+//ค้าหา
         if (!query) {
             producted = await Product.find()
                 .limit(limit)
